@@ -14,3 +14,17 @@ export function createStudent(data) {
         student_id: uniqid()
     });
 }
+
+export function assignStudentToMentor(id, data){
+    return client.db("Mentor_student_api").collection("mentors").updateOne(
+        {"mentor_id": id},
+        {
+            $set: {
+                isStudentAssigned: true,
+            },
+            $push: {
+                studentsAssigned : data
+            }
+        }
+    )
+}
