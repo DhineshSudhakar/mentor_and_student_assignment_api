@@ -1,6 +1,6 @@
 import express from "express"
 import { client } from "../index.js"
-import { assignStudentToMentor, createMentor } from "./helper.js"
+import { assignStudentToMentor, createMentor, findStudent, findMentor, findStudentAssignedToMentor, assignMentortoStudent } from "./helper.js"
 
 const router = express.Router()
 
@@ -12,18 +12,39 @@ router.post("/create", async (req, res) => {
     } catch (error) {
         res.status(401).send({msg: error.message})
     }
-    
 })
 
 router.put("/assign/:id", async(req, res) => {
     const mentor_id = req.params.id
-    const data = req.body
-    console.log(mentor_id, data);
+    const student_id = req.body.student
     try {
-        const result = await assignStudentToMentor(mentor_id, data)
-        res.send(result)
-    } catch (error) {
+        const student = await findStudent(student_id)
+        if(student){
+            const isStudentAssigned = await findStudentAssignedToMentor(student_id)
+            console.log(isStudentAssigned)
+            if(isStudentAssigned){
+                res.status(401).send({msg: "student already assigned to"})
+            }else{
+                const data = {
+                    student : student_id,
+                    student_name : student.name
+                }
+                const result = await assignStudentToMentor(mentor_id, data)
+                const mentor = await findMentor(mentor_id)
+                const dataToStudent = {
+                    mentor_id,
+                    mentor_name : mentor.name
+                }
+                await assignMentortoStudent(student_id, dataToStudent )
+                res.send(result)
+            }
+        }else{
+            res.status(401).send({msg: "student not found"})
+        }
         
+    } catch (error) {
+        console.log(error)
+        res.status(401).send({msg: error.message})
     }
 })
 

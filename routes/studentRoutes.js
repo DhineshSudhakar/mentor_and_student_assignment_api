@@ -19,9 +19,8 @@ router.put("/updateall", async(req, res) => {
         const result = await client.db("Mentor_student_api").collection("students").updateMany(
             {},
             {
-                $set: {
-                    isMentorAssigned : false,
-                    mentorAssigned: []
+                $unset: {
+                    isMentorAsssigned : false,
                 }
             }
         )
