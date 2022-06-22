@@ -24,10 +24,35 @@ export function findStudent(id){
     return client.db("Mentor_student_api").collection("students").findOne({student_id: id})
 }
 
-export function findStudentAssignedToMentor(id){
-    return client.db("Mentor_student_api").collection("mentors").findOne(
-        {"studentsAssigned":{$elemMatch: {"student": id }}}
+export function showAllStudents(id){          // for mentor routes
+    return client.db("Mentor_student_api").collection("mentors").find(
+        {mentor_id: id},
+    ).project({name: 1, studentsAssigned:1}).toArray()
+}
+
+export async function findStudentAssignedToMentor(id1, id2){
+    const result = await client.db("Mentor_student_api").collection("mentors").findOne(
+        {
+            $and : [ 
+                {mentor_id: id1},
+                {studentsAssigned : {$elemMatch: {student : id2}} } 
+            ]
+        }
+        
     )
+    return result
+}
+
+export async function findMentorAssignedToStudent(id1, id2){
+    const result = await client.db("Mentor_student_api").collection("students").findOne(
+        {
+            $and : [ 
+                {student_id: id1},
+                {mentorAssigned : {$elemMatch: {mentor : id2}} } 
+            ]
+        }
+    )
+    return result
 }
 
 export function assignStudentToMentor(id, data){
@@ -44,7 +69,7 @@ export function assignStudentToMentor(id, data){
     )
 }
 
-export function assignMentortoStudent(id, data){
+export function assignMentorToStudent(id, data){
     return client.db("Mentor_student_api").collection("students").updateOne(
         { student_id : id },
         {
